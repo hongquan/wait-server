@@ -1,0 +1,87 @@
+#!/bin/bash
+
+# Script to wait until specified server is ready to connect. The timeout is 5s.
+
+function help {
+	echo "Usage: $0 [[HOST] PORT] [-t <timeout>][-q][-h]"
+	echo "where:"
+	echo "    HOST is localhost by default."
+	echo "    PORT is 8000 by default."
+	echo
+	echo "Waiting for a server at HOST:PORT until its port is connectable. \
+If the port is responsive before timeout, the program will exit with success status, \
+otherwise, it will exit with error status."
+	echo ""
+	echo "Options:"
+	echo "    -t: Timeout. Default is 5s."
+	echo "    -q: Quiet, don't show progress dots."
+	echo "    -h: Show this help and exit."
+}
+
+TEMP=$(getopt -o 'hqt:' -n "$(basename "$0")" -- "$@")
+
+parse_status=$?
+# Get unkown options
+if [ $parse_status -ne 0 ]; then
+	help
+	exit 1
+fi
+
+eval set -- "$TEMP"
+unset TEMP
+
+HOST='localhost'
+PORT=8000
+TIMEOUT=5
+QUIET=0
+
+while true; do
+	case "$1" in
+		'-h')
+			help
+			shift
+			exit
+		;;
+		'-t')
+			TIMEOUT=$2
+			shift 2
+			continue
+		;;
+		'-q')
+			QUIET=1
+			shift
+			continue
+		;;
+		'--')
+			shift
+			break
+		;;
+		*)
+			echo 'Internal error!' >&2
+			exit 1
+		;;
+	esac
+done
+
+if [ $# -eq 1 ]; then
+	PORT=$1
+elif [ $# -gt 1 ]; then
+	HOST=$1
+	PORT=$2
+fi
+
+for _ in $(seq "$TIMEOUT"); do
+	[[ ! $QUIET ]] && (printf '.' >& 2)
+	nc -z "$HOST" "$PORT"
+
+	off=$?
+
+	if [ $off -eq 0 ]; then
+		# The server is online
+		break
+	fi
+
+	sleep 1
+done
+[[ ! $QUIET ]] && (echo '' >& 2)
+exit $off
