@@ -18,10 +18,10 @@ wait-server [[HOST] PORT] [-t <timeout>][-q][-h]
 
 where:
 
-- HOST: Host name or IP address of server. Default is localhost.
-- PORT: Port where the server is listening. Default is 8000.
-- t: Timeout. Default is 5s.
-- q: Quiet, don't show progress dots.
+- `HOST`: Host name or IP address of server. Default is localhost.
+- `PORT`: Port where the server is listening. Default is 8000.
+- `t`: Timeout. Default is 5s.
+- `q`: Quiet, don't show progress dots.
 
 
 Main use of this tool, is to used in a _systemd_ service, to delay the service until some server is online. For example, you have `service-a` and `service-b`, in which `service-a` is a server software that takes long time to initialize (often Java application), and `service-b` should be run only after `service-a` is ready. You can write the _systemd_ service file like this:
